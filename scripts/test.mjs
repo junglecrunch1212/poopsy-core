@@ -43,7 +43,9 @@ const required = [
   'scripts/capture.mjs',
   'scripts/setup.mjs',
   'scripts/learn.mjs',
-  'scripts/backup.mjs'
+  'scripts/backup.mjs',
+  'scripts/lib/header_map.mjs',
+  'docs/activation.md'
 ];
 
 for (const f of required) {
