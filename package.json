@@ -10,7 +10,8 @@
     "probe:action-ledger": "node scripts/probe_action_ledger.mjs",
     "probe:life-os": "node scripts/probe_life_os_read.mjs",
     "capture:task:dry": "node scripts/capture.mjs --action=task --dry-run --person=james --text=\"TEST TASK\"",
-    "capture:processed:dry": "node scripts/capture.mjs --action=processed --dry-run --id=INB-YYYYMMDD-0000"
+    "capture:processed:dry": "node scripts/capture.mjs --action=processed --dry-run --id=INB-YYYYMMDD-0000",
+    "capture:promote:dry": "node scripts/capture.mjs --action=promote --dry-run --id=INB-YYYYMMDD-0000"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

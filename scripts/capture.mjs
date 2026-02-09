@@ -27,7 +27,7 @@ if (!action) {
   const ts = new Date().toISOString();
 
   try {
-    if (action !== 'task' && action !== 'processed') throw new Error(`unsupported action: ${action}`);
+    if (action !== 'task' && action !== 'processed' && action !== 'promote') throw new Error(`unsupported action: ${action}`);
 
     if (action === 'task') {
       if (!text.trim()) throw new Error('--text is required');
@@ -62,8 +62,46 @@ if (!action) {
       process.exit(0);
     }
 
-    // action === processed
-    if (!inboxId) throw new Error('--id is required for action=processed (INB-...)');
+    if (action === 'processed') {
+      if (!inboxId) throw new Error('--id is required for action=processed (INB-...)');
+      if (dryRun) {
+        receipt({ intent: 'capture', result: 'dry_run', ok: true, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId } });
+        console.log(JSON.stringify({ status: 'dry_run', action, person, id: inboxId }, null, 2));
+        process.exit(0);
+      }
+
+      const { spawnSync } = await import('node:child_process');
+      const r = spawnSync('node', ['scripts/complete_inbox.mjs', `--id=${inboxId}`], { encoding: 'utf8' });
+      const ok = (r.status ?? 1) === 0;
+
+      receipt({ intent: 'capture', result: ok ? 'processed_ok' : 'processed_error', ok, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId, stderr: (r.stderr || '').slice(-400) } });
+
+      if (!ok) throw new Error((r.stdout || r.stderr || 'processed failed').slice(-800));
+
+      console.log((r.stdout || '').trim() || JSON.stringify({ status: 'ok', action, id: inboxId }, null, 2));
+      process.exit(0);
+    }
+
+    // action === promote
+    if (!inboxId) throw new Error('--id is required for action=promote (INB-...)');
+    if (dryRun) {
+      receipt({ intent: 'capture', result: 'dry_run', ok: true, ts, target: 'life_os:_MASTER_LOG', detail: { action, person, id: inboxId } });
+      console.log(JSON.stringify({ status: 'dry_run', action, person, id: inboxId }, null, 2));
+      process.exit(0);
+    }
+
+    {
+      const { spawnSync } = await import('node:child_process');
+      const r = spawnSync('node', ['scripts/promote_inbox.mjs', `--id=${inboxId}`], { encoding: 'utf8' });
+      const ok = (r.status ?? 1) === 0;
+
+      receipt({ intent: 'capture', result: ok ? 'promote_ok' : 'promote_error', ok, ts, target: 'life_os:_MASTER_LOG', detail: { action, person, id: inboxId, stderr: (r.stderr || '').slice(-400) } });
+
+      if (!ok) throw new Error((r.stdout || r.stderr || 'promote failed').slice(-800));
+
+      console.log((r.stdout || '').trim());
+      process.exit(0);
+    }
     if (dryRun) {
       receipt({ intent: 'capture', result: 'dry_run', ok: true, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId } });
       console.log(JSON.stringify({ status: 'dry_run', action, person, id: inboxId }, null, 2));
