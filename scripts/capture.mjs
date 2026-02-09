@@ -27,7 +27,7 @@ if (!action) {
   const ts = new Date().toISOString();
 
   try {
-    if (action !== 'task' && action !== 'done') throw new Error(`unsupported action: ${action}`);
+    if (action !== 'task' && action !== 'processed') throw new Error(`unsupported action: ${action}`);
 
     if (action === 'task') {
       if (!text.trim()) throw new Error('--text is required');
@@ -62,8 +62,8 @@ if (!action) {
       process.exit(0);
     }
 
-    // action === done
-    if (!inboxId) throw new Error('--id is required for action=done (INB-...)');
+    // action === processed
+    if (!inboxId) throw new Error('--id is required for action=processed (INB-...)');
     if (dryRun) {
       receipt({ intent: 'capture', result: 'dry_run', ok: true, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId } });
       console.log(JSON.stringify({ status: 'dry_run', action, person, id: inboxId }, null, 2));
@@ -74,7 +74,7 @@ if (!action) {
     const r = spawnSync('node', ['scripts/complete_inbox.mjs', `--id=${inboxId}`], { encoding: 'utf8' });
     const ok = (r.status ?? 1) === 0;
 
-    receipt({ intent: 'capture', result: ok ? 'done_ok' : 'done_error', ok, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId, stderr: (r.stderr || '').slice(-400) } });
+    receipt({ intent: 'capture', result: ok ? 'processed_ok' : 'processed_error', ok, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId, stderr: (r.stderr || '').slice(-400) } });
 
     if (!ok) throw new Error((r.stdout || r.stderr || 'done failed').slice(-800));
 

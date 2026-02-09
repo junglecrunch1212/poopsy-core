@@ -12,7 +12,7 @@ function arg(name, def = null) {
 }
 
 const inboxId = arg('id');
-const status = arg('status', 'done');
+const status = arg('status', 'processed');
 
 if (!inboxId) {
   console.log('Usage: node scripts/complete_inbox.mjs --id=INB-YYYYMMDD-#### [--status=done|processed]');
