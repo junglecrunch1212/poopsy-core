@@ -1,0 +1,8 @@
+# household.yaml (STERILE TEMPLATE)
+
+household:
+  name: "__PENDING__"
+  timezone: "America/New_York"
+  agent_name: "Poopsy"
+
+people: {}

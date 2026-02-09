@@ -1,0 +1,14 @@
+{
+  "name": "poopsy-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Poopsy Core — minimal, portable core loop for Poopsy-in-a-Box",
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "sanitize": "./scripts/sanitize_check.sh ."
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

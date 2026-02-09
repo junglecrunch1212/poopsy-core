@@ -1,0 +1,20 @@
+# connections.yaml (STERILE TEMPLATE)
+# Fill locally in your live OpenClaw workspace; do not commit real IDs.
+
+google_sheets:
+  life_os:
+    sheet_id: "__PENDING__"
+    tabs:
+      inbox: "INBOX"
+      master_log: "_MASTER_LOG"
+  financial_os:
+    sheet_id: "__PENDING__"
+    tabs:
+      budget_vs_actual: "Budget vs Actual"
+      raw_data: "Raw Data"
+
+google_calendar:
+  family_ssot:
+    calendar_id: "__PENDING__"
+  holds:
+    calendar_id: null
