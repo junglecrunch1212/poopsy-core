@@ -24,7 +24,7 @@ try {
   assertConfigured(lifeId, 'google_sheets.life_os.sheet_id');
 
   // Master log headers
-  const ml = gogJson(`sheets.get --spreadsheetId "${lifeId}" --range "_MASTER_LOG!A1:AT1"`);
+  const ml = gogJson(`sheets get ${lifeId} "_MASTER_LOG!A1:AT1"`);
   if (!ml.ok) throw new Error(`_MASTER_LOG header read failed: ${ml.error}`);
   const mlHeaders = ml.data?.values?.[0] || [];
   const mlMap = buildHeaderMap(mlHeaders, {
@@ -35,7 +35,7 @@ try {
   });
 
   // Inbox headers (row 2 is headers per our docs)
-  const ib = gogJson(`sheets.get --spreadsheetId "${lifeId}" --range "INBOX!A2:M2"`);
+  const ib = gogJson(`sheets get ${lifeId} "INBOX!A2:M2"`);
   if (!ib.ok) throw new Error(`INBOX header read failed: ${ib.error}`);
   const ibHeaders = ib.data?.values?.[0] || [];
   const ibMap = buildHeaderMap(ibHeaders, {
@@ -60,8 +60,8 @@ try {
   };
 
   report.ok = mlMap.ok && ibMap.ok;
-  return outAndExit(report.ok, report);
+  outAndExit(report.ok, report);
 } catch (e) {
   report.error = e?.message || String(e);
-  return outAndExit(false, report);
+  outAndExit(false, report);
 }

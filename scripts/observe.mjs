@@ -22,7 +22,7 @@ try {
   const lifeId = conn?.google_sheets?.life_os?.sheet_id;
   assertConfigured(lifeId, 'google_sheets.life_os.sheet_id');
 
-  const r = gogJson(`sheets.get --spreadsheetId "${lifeId}" --range "_MASTER_LOG!A1:AT"`);
+  const r = gogJson(`sheets get ${lifeId} "_MASTER_LOG!A1:AT"`);
   if (!r.ok) throw new Error(r.error);
 
   const rows = r.data?.values || [];

@@ -11,11 +11,22 @@ function readYaml(filePath) {
   return yaml.load(txt);
 }
 
+function liveOverridePath(rel) {
+  // Live overrides (REAL IDs) live outside the repo and must not be committed.
+  // Default location is in the OpenClaw workspace.
+  const base = process.env.POOPSY_CORE_LIVE_DIR || '/data/.openclaw/workspace/poopsy-core-live';
+  return path.join(base, rel);
+}
+
 export function loadConnections() {
+  const live = liveOverridePath('connections.yaml');
+  if (fs.existsSync(live)) return readYaml(live);
   return readYaml(path.join(ROOT, 'config', 'connections.yaml'));
 }
 
 export function loadHousehold() {
+  const live = liveOverridePath('household.yaml');
+  if (fs.existsSync(live)) return readYaml(live);
   return readYaml(path.join(ROOT, 'config', 'household.yaml'));
 }
 

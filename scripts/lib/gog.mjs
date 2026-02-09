@@ -1,10 +1,10 @@
-// gog.mjs — thin wrapper around `openclaw tool gog` (CLI)
+// gog.mjs — thin wrapper around the `gog` CLI (Google Workspace)
 // NOTE: v1 uses CLI execution for speed; later we can replace with a direct integration.
 
 import { execSync } from 'child_process';
 
 export function gog(cmd, { json = false, timeoutMs = 30000 } = {}) {
-  const full = `openclaw tool gog ${cmd}${json ? ' --json' : ''}`;
+  const full = `gog ${cmd}${json ? ' --json' : ''}`;
   try {
     const out = execSync(full, { encoding: 'utf8', timeout: timeoutMs });
     return { ok: true, cmd: full, out: out.trim() };
