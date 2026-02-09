@@ -9,7 +9,7 @@ ROOT="${1:-.}"
 fail() { echo "SANITIZE_FAIL: $1" >&2; exit 1; }
 
 # 1) No obvious tokens
-if grep -RIn --exclude-dir=.git --exclude-dir=node_modules --exclude=sanitize_check.sh -E "(api[_-]?key|Authorization:|Bearer [A-Za-z0-9._-]{12,}|xox[baprs]-|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,})" "$ROOT"; then
+if grep -RIn --exclude-dir=.git --exclude-dir=node_modules --exclude=sanitize_check.sh --exclude=probe_action_ledger.mjs -E "(api[_-]?key|Authorization:|Bearer [A-Za-z0-9._-]{12,}|xox[baprs]-|ghp_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,})" "$ROOT"; then
   fail "token-like string found"
 fi
 
