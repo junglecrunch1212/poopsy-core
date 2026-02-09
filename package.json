@@ -8,7 +8,8 @@
     "test": "node scripts/test.mjs",
     "sanitize": "./scripts/sanitize_check.sh .",
     "probe:action-ledger": "node scripts/probe_action_ledger.mjs",
-    "probe:life-os": "node scripts/probe_life_os_read.mjs"
+    "probe:life-os": "node scripts/probe_life_os_read.mjs",
+    "capture:task:dry": "node scripts/capture.mjs --action=task --dry-run --person=james --text=\"TEST TASK\""
   },
   "dependencies": {
     "js-yaml": "^4.1.0"
