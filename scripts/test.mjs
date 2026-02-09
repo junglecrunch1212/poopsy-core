@@ -45,6 +45,10 @@ const required = [
   'scripts/learn.mjs',
   'scripts/backup.mjs',
   'scripts/lib/header_map.mjs',
+  'scripts/lib/config.mjs',
+  'scripts/lib/gog.mjs',
+  'scripts/probe_action_ledger.mjs',
+  'scripts/probe_life_os_read.mjs',
   'docs/activation.md'
 ];
 
