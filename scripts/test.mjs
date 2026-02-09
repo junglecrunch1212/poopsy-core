@@ -32,9 +32,18 @@ console.log('poopsy-core test suite');
 const required = [
   'package.json',
   'README.md',
+  'SKILL.md',
+  'HEARTBEAT.md',
+  'hooks/on-message.md',
   'config/connections.yaml',
   'config/household.yaml',
-  'scripts/sanitize_check.sh'
+  'scripts/sanitize_check.sh',
+  'scripts/observe.mjs',
+  'scripts/decide.mjs',
+  'scripts/capture.mjs',
+  'scripts/setup.mjs',
+  'scripts/learn.mjs',
+  'scripts/backup.mjs'
 ];
 
 for (const f of required) {
