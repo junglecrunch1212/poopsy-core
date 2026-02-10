@@ -110,28 +110,70 @@
 - **Purpose:** Full household Chief of Staff project — skills, modules, policies, research, briefings
 - **Location on VPS:** `/data/.openclaw/workspace/projects/poopsy-in-a-box/`
 
-#### [UNKNOWN — Poopsy should fill these in from VPS]
-- [ ] Full file tree (`ls -R` or similar)
-- [ ] `STATUS.md` contents
-- [ ] `ROADMAP.md` contents
-- [ ] `modules.json` / module registry
-- [ ] `scripts/calendar_spine.mjs` — what it does, current state
-- [ ] `scripts/lifeos_drift_watch.mjs` — what it does, current state
-- [ ] `scripts/lifeos_diff.mjs` — what it does
-- [ ] `scripts/earned_access_gatekeeper.mjs` — current logic
-- [ ] `scripts/build_lock.sh` — locking mechanism
-- [ ] `scripts/repo_coherence_audit.mjs` — what it checks
-- [ ] `scripts/rebuild_doc_check.mjs` — what it checks
-- [ ] `scripts/skill_security_audit.mjs` — audit logic
-- [ ] `scripts/probe_modules.mjs` — what modules it probes
-- [ ] `inbox_rules.yaml` — triage policy for Gmail
-- [ ] `briefings/` — template structure, suppressions.yaml
-- [ ] `research/loops/` — any loop definitions
-- [ ] `workspace-template/modules.json` — module definitions including _PROBE_LOG references
-- [ ] `state/loop_state.json` — current structure
-- [ ] `state/earned_access.json` — current state/schema
-- [ ] `state/token_burn_watch.json` — current snapshot
-- [ ] Any other scripts/policies not listed above
+#### Verified from VPS (2026-02-10)
+
+**STATUS.md:** Present, last updated 2026-02-08. Notes calendar SSOT IDs still `__PENDING__`.
+**ROADMAP.md:** Present, last updated 2026-02-08. Principles include sandbox-first + _PROBE_LOG as safe sink.
+
+#### Module registry (`workspace-template/modules.json`)
+| Module | Enabled | Notes |
+|---|---|---|
+| `lifeos_sheets` | **yes** | Expects `household_os.production_sheet_id` + `sandbox_sheet_id` from os_links. _PROBE_LOG referenced for sandbox probe. |
+| `calendar_ssot` | no | Exists but disabled |
+| `gmail_triage` | no | Exists but disabled |
+
+#### State files (on VPS — note: earned_access is at workspace root, NOT under projects)
+
+**`state/loop_state.json`** (excerpt):
+```json
+{
+  "version": 1,
+  "updatedAt": "2026-02-10T09:05:56Z",
+  "activeMilestone": {
+    "id": "phase0-domain-model-layer",
+    "title": "Adopt the Domain Model Layer (oak DNA)",
+    "phase": "Phase 0"
+  },
+  "signals": {
+    "lastKnown": {
+      "whatsappConnected": true,
+      "providersHealthy": false,
+      "cronHealthy": true,
+      "diskOk": true,
+      "diskUsePct": 49
+    }
+  }
+}
+```
+
+**`/data/.openclaw/workspace/state/earned_access.json`:**
+```json
+{
+  "mode": "locked",
+  "today": {
+    "date": "2026-02-10",
+    "completed": {
+      "exercise": true,
+      "captain": false,
+      "honey_do": false,
+      "house_reset": false
+    }
+  }
+}
+```
+
+#### Other confirmed items
+- **`inbox_rules.yaml`:** Present at `/data/.openclaw/workspace/inbox_rules.yaml`. Includes trusted domains + notify/ignore keyword heuristics + Xfinity/Peacock suppression.
+- **OpenClaw skills:** 9/50 ready. Key skill: `gog` (Google Workspace CLI) is installed and ready.
+- **gog auth:** OAuth, account `jrstice@gmail.com`, credentials exist. Config file does not exist (uses defaults).
+
+#### Still unknown (need deeper VPS exploration)
+- [ ] Full file tree of poopsy-in-a-box (excluding .git)
+- [ ] Individual script contents: `calendar_spine.mjs`, `lifeos_drift_watch.mjs`, `lifeos_diff.mjs`, `earned_access_gatekeeper.mjs`, `build_lock.sh`, `repo_coherence_audit.mjs`, `rebuild_doc_check.mjs`, `skill_security_audit.mjs`, `probe_modules.mjs`
+- [ ] `briefings/` template structure + `suppressions.yaml`
+- [ ] `research/loops/` definitions
+- [ ] `state/token_burn_watch.json` snapshot
+- [ ] `providersHealthy: false` — which provider is unhealthy?
 
 ---
 
@@ -141,13 +183,14 @@
 - Life OS: `https://docs.google.com/spreadsheets/d/1cbi7AjRbyKrk9N84RhyDQ5HpAl96oIVXGhjh8ttIwf8/edit`
 - Financial OS: `https://docs.google.com/spreadsheets/d/1K8qYja-kIAIuDXfZ9391gDyHNIIv6Aiz/edit`
 
-### [UNKNOWN — actual Sheet IDs from live connections.yaml]
-- [ ] `life_os.sheet_id`: _________
-- [ ] `financial_os.sheet_id`: _________
-- [ ] `family_ssot.calendar_id`: _________
-- [ ] `holds.calendar_id`: _________
+### Live connections (from VPS connections.yaml, 2026-02-10)
+- `life_os.sheet_id`: `...mlcc3k` (redacted; full ID in live connections.yaml on VPS)
+- `financial_os.sheet_id`: `__PENDING__`
+- `family_ssot.calendar_id`: `__PENDING__`
+- `holds.calendar_id`: `null` (not configured)
 
-### INBOX tab schema (row 1 = headers, row 2+ = data)
+### INBOX tab schema (row 1 = title/instructions, row 2 = headers, row 3+ = data)
+**IMPORTANT:** Row 1 is a display row (`📥 Inbox ... Capture quick thoughts here`), NOT the header row. Headers are in row 2.
 | Col | Header | Description |
 |---|---|---|
 | A | ID | `INB-YYYYMMDD-XXXX` (auto-generated) |
@@ -165,27 +208,38 @@
 | M | Ready? | Optional |
 
 ### _MASTER_LOG tab schema (row 1 = headers, row 2+ = data)
+_(Confirmed: _MASTER_LOG headers ARE in row 1, unlike INBOX which has a title row.)_
 Required columns: `item_id`, `title`, `owner`, `status`, `created_at`, `source_system`, `source_ref`, `inbox_id`
 
 Full column set (from `appendMasterLogRow`): `item_id`, `item_type`, `title`, `description`, `domain`, `subdomain`, `owner`, `status`, `priority`, `effort_minutes`, `due_date`, `created_at`, `created_by`, `updated_at`, `updated_by`, `source_system`, `source_ref`, `inbox_id`
 
 Range: A:AT (columns may extend beyond the above)
 
-### [UNKNOWN — actual current header rows from the live sheets]
-- [ ] INBOX actual headers (verify against schema above)
-- [ ] _MASTER_LOG actual headers (full list)
-- [ ] INBOX_SANDBOX tab — does it exist yet? Headers?
-- [ ] _PROBE_LOG tab — does it exist? Headers?
+### Verified live headers (2026-02-10)
+
+**INBOX row 2 (actual headers):**
+`ID | When | From | Status | Ref | Quick Note | Task Title | Notes | Owner? | Category? | Moved To | Moved On | Ready?`
+Matches schema above.
+
+**_MASTER_LOG row 1 (actual headers):**
+`item_id | item_type | title | description | domain | subdomain | owner | status | ...` (extends to column AT)
+Matches schema above.
+
+**INBOX_SANDBOX:** Does NOT exist yet. Needs to be created (matching INBOX headers).
+**_PROBE_LOG:** Does NOT exist yet. Needs to be created.
+
+### Still unknown
 - [ ] Dashboard tab structure (James/Laura/Next Top 3 views)
 - [ ] Gamification system details (XP, levels, streaks)
+- [ ] Full list of all tabs in the Life OS sheet
 
 ### Tab inventory
 | Tab | Purpose | Write policy |
 |---|---|---|
 | INBOX | Live capture inbox | Gated (approval required) |
-| INBOX_SANDBOX | Sandbox for testing intake router | Safe to write |
+| INBOX_SANDBOX | Sandbox for testing intake router | Safe to write — **TAB DOES NOT EXIST YET** |
 | _MASTER_LOG | Promoted tasks, full metadata | Gated |
-| _PROBE_LOG | Probe/diagnostic sink | Safe to write (approved) |
+| _PROBE_LOG | Probe/diagnostic sink | Safe to write (approved) — **TAB DOES NOT EXIST YET** |
 | Dashboard | James/Laura/Next Top 3 views | Read-only from scripts |
 | [UNKNOWN] | _Other tabs?_ | _Fill in_ |
 
@@ -328,53 +382,43 @@ Calendar invites ─────┘
 
 ---
 
-## 10. [UNKNOWN — Poopsy: please fill these in]
+## 10. Remaining Unknowns
 
-> Run these on VPS and paste output into this section, then commit.
+> For Poopsy to fill in during a future VPS session.
 
 ```bash
-# Installed skills
-openclaw skill list
+# Full poopsy-in-a-box file tree (excluding .git)
+find /data/.openclaw/workspace/projects/poopsy-in-a-box -type f -not -path '*/.git/*' | sort
 
-# gog auth status / scopes
-gog auth status
+# Key scripts (cat each to understand)
+cat /data/.openclaw/workspace/projects/poopsy-in-a-box/scripts/calendar_spine.mjs
+cat /data/.openclaw/workspace/projects/poopsy-in-a-box/scripts/lifeos_drift_watch.mjs
+cat /data/.openclaw/workspace/projects/poopsy-in-a-box/scripts/earned_access_gatekeeper.mjs
 
-# Live connections (redact sheet IDs to last 6 chars if worried about repo leak)
-cat /data/.openclaw/workspace/poopsy-core-live/connections.yaml
+# Briefing templates
+ls /data/.openclaw/workspace/projects/poopsy-in-a-box/briefings/
 
-# poopsy-in-a-box file tree
-find /data/.openclaw/workspace/projects/poopsy-in-a-box -type f | head -100
+# Token burn watch
+cat /data/.openclaw/workspace/projects/poopsy-in-a-box/state/token_burn_watch.json
 
-# Current loop state
-cat /data/.openclaw/workspace/projects/poopsy-in-a-box/state/loop_state.json
+# All tabs in Life OS sheet
+gog sheets list-tabs <LIFE_OS_SHEET_ID>
 
-# Earned access state
-cat /data/.openclaw/workspace/projects/poopsy-in-a-box/state/earned_access.json
-
-# ROADMAP
-cat /data/.openclaw/workspace/projects/poopsy-in-a-box/ROADMAP.md
-
-# STATUS
-cat /data/.openclaw/workspace/projects/poopsy-in-a-box/STATUS.md
-
-# Module registry
-cat /data/.openclaw/workspace/projects/poopsy-in-a-box/workspace-template/modules.json
-
-# Inbox rules
-cat /data/.openclaw/workspace/inbox_rules.yaml
-
-# INBOX actual headers (row 1)
-gog sheets get <LIFE_OS_SHEET_ID> "INBOX!1:1" --json
-
-# _MASTER_LOG actual headers (row 1)
-gog sheets get <LIFE_OS_SHEET_ID> "_MASTER_LOG!1:1" --json
-
-# Does INBOX_SANDBOX exist?
-gog sheets get <LIFE_OS_SHEET_ID> "INBOX_SANDBOX!1:1" --json
-
-# Does _PROBE_LOG exist?
-gog sheets get <LIFE_OS_SHEET_ID> "_PROBE_LOG!1:1" --json
+# Why is providersHealthy: false?
+openclaw status --deep
 ```
+
+### Blocking items before intake_router can run
+1. **Create INBOX_SANDBOX tab** — Poopsy needs to run: `gog sheets add-tab <SHEET_ID> "INBOX_SANDBOX"` then populate row 1 with headers (copied from INBOX row 2). **Do NOT add a title row** — the new scripts (`lifeos_inbox_append.mjs`, `dedup_check.mjs`) expect headers in row 1.
+2. **Create _PROBE_LOG tab** — same approach (headers in row 1, no title row)
+
+### Critical: INBOX header row offset
+The live **INBOX** tab has a **title row in row 1** ("📥 Inbox ... Capture quick thoughts here") and **headers in row 2**. This means:
+- `lifeos_inbox.mjs` (old) is correct — it hardcodes `INBOX!A2:M` and knows the column order
+- `lifeos_inbox_append.mjs` (new) reads headers from row 1 — **safe for INBOX_SANDBOX** (no title row), **would break on live INBOX**
+- `dedup_check.mjs` (new) reads headers from row 1 — **same: safe for SANDBOX, not for live INBOX**
+
+**Before promoting intake_router to live INBOX**, the new modules need a `headerRow` parameter (default 1, set to 2 for live INBOX) or the INBOX title row needs to be removed.
 
 ---
 
