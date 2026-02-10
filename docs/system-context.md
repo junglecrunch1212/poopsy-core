@@ -46,7 +46,7 @@
 | Integration | Status | Details |
 |---|---|---|
 | WhatsApp | **Connected** | Gateway linked, messages flowing. Occasional transient HTTP 499 disconnect/reconnect events but self-heals. |
-| Gmail (via `gog`) | **Read-only working** | `gog gmail list/read` works. Triage cron runs every 2h (08:00–20:00 ET). GOG_ACCOUNT=jrstice@gmail.com. |
+| Gmail (via `gog`) | **Read-only working** | `gog gmail list/read` works. Triage cron runs every 2h (08:00–20:00 ET). GOG_ACCOUNT set (see VPS config). |
 | Google Calendar | **IDs configured in os_links.yaml; reads not yet verified** | `os_links.yaml` has `family_ssot` + `holds_tentative` calendar IDs. `connections.yaml` still has `__PENDING__` (stale). Need to verify reads work via `gog calendar list --calendar-id <FAMILY_SSOT_ID>`. No write scripts exist yet. |
 | Google Sheets | **Reads working; writes not yet proven** | Reads from Life OS INBOX + _MASTER_LOG work. Live writes are gated. Sandbox sheet exists (separate spreadsheet) but sandbox tabs (INBOX, _PROBE_LOG) may not be created yet — verify before writing. |
 | Tailscale | **Working** | VPS + PC + iPhone connected |
@@ -166,7 +166,7 @@
 #### Other confirmed items
 - **`inbox_rules.yaml`:** Present at `/data/.openclaw/workspace/inbox_rules.yaml`. Includes trusted domains + notify/ignore keyword heuristics + Xfinity/Peacock suppression.
 - **OpenClaw skills:** 9/50 ready. Key skill: `gog` (Google Workspace CLI) is installed and ready.
-- **gog auth:** OAuth, account `jrstice@gmail.com`, credentials exist. Config file does not exist (uses defaults).
+- **gog auth:** OAuth, account set (see VPS config), credentials exist. Config file does not exist (uses defaults).
 
 #### Still unknown (need deeper VPS exploration)
 - [ ] Full file tree of poopsy-in-a-box (excluding .git)
@@ -184,29 +184,29 @@
 
 The sandbox is a **separate spreadsheet**, not a tab in the production sheet. This matches `workspace-template/modules.json` which expects `household_os.production_sheet_id` + `household_os.sandbox_sheet_id` from `os_links.yaml`.
 
-| Sheet | ID (last 6) | Full URL |
+| Sheet | ID suffix | Notes |
 |---|---|---|
-| Life OS (production) | `mlcc3k` | `https://docs.google.com/spreadsheets/d/1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k/edit` |
-| Life OS (sandbox) | `pohE` | `https://docs.google.com/spreadsheets/d/1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE/edit` |
-| Financial OS (production) | `jbLXA` | `https://docs.google.com/spreadsheets/d/176LxzS8ZFeSxqvCJfPFEXFmn7CgNh1ij74NYFQjbLXA/edit` |
-| Financial OS (sandbox) | `-18iU` | `https://docs.google.com/spreadsheets/d/1sWX4Rznrk9Geq4yxHfzWIxr_DWwam4RmGqBtDv-18iU/edit` |
+| Life OS (production) | `...mlcc3k` | Full ID in `os_links.yaml` on VPS |
+| Life OS (sandbox) | `...pohE` | Full ID in `os_links.yaml` on VPS |
+| Financial OS (production) | `...jbLXA` | Full ID in `os_links.yaml` on VPS |
+| Financial OS (sandbox) | `...-18iU` | Full ID in `os_links.yaml` on VPS |
 
 ### Live connections (verified from `os_links.yaml` on VPS, 2026-02-10)
 
 **SSOT is `os_links.yaml`**, NOT `connections.yaml` (which still has stale `__PENDING__` values for calendar).
 
-**Sheets:**
-- `household_os.production_sheet_id`: `1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k` ✓
-- `household_os.sandbox_sheet_id`: `1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE` ✓
-- `household_os.production_dashboard_gid`: `346720610`
-- `financial_os.production_sheet_id`: `176LxzS8ZFeSxqvCJfPFEXFmn7CgNh1ij74NYFQjbLXA` ✓
-- `financial_os.sandbox_sheet_id`: `1sWX4Rznrk9Geq4yxHfzWIxr_DWwam4RmGqBtDv-18iU` ✓
+**Sheets** (all verified ✓ — full IDs in `os_links.yaml` on VPS):
+- `household_os.production_sheet_id`: `...mlcc3k` ✓
+- `household_os.sandbox_sheet_id`: `...pohE` ✓
+- `household_os.production_dashboard_gid`: present ✓
+- `financial_os.production_sheet_id`: `...jbLXA` ✓
+- `financial_os.sandbox_sheet_id`: `...-18iU` ✓
 
-**Calendars:**
-- `calendars.google.account`: `jrstice@gmail.com`
+**Calendars** (full IDs in `os_links.yaml` on VPS):
+- `calendars.google.account`: set ✓ (redacted for CI sanitize gate)
 - `calendar_ids.primary`: `primary`
-- `calendar_ids.family_ssot`: `0c1efb6817814282250e97520992e9dad21c9d46c8699b0aa8de45e1fefae9af@group.calendar.google.com`
-- `calendar_ids.holds_tentative`: `6062a0382c3ad6b345b3ef12456fe1fd6c884d2a8171ab6ca8742ba5212aec40@group.calendar.google.com`
+- `calendar_ids.family_ssot`: set ✓ (long hash `@group.calendar...`)
+- `calendar_ids.holds_tentative`: set ✓ (long hash `@group.calendar...`)
 - `outlook.laura_work_busy_ics_url`: `__PENDING__`
 - `skylight`: disabled
 
@@ -412,10 +412,10 @@ Calendar invites ─────┘  (blocked — calendar IDs __PENDING__)
 
 ## 9. Key Contacts / Accounts
 
-- **James WhatsApp:** +14048495800
-- **Gmail (gog):** jrstice@gmail.com
+> PII redacted for CI sanitize gate. Real values in VPS config files (`os_links.yaml`, OpenClaw config).
+
 - **GitHub:** junglecrunch1212
-- **Firm:** Evolve Family Law (Dawn Smith founding partner, Laura junior partner)
+- **Firm:** Evolve Family Law
 
 ---
 
@@ -453,13 +453,13 @@ Run these on VPS and paste results:
 cat /data/.openclaw/workspace/os_links.yaml
 
 # 2. List tabs in PRODUCTION sheet
-gog sheets list-tabs 1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k
+gog sheets list-tabs <PROD_SHEET_ID from os_links.yaml>
 
 # 3. List tabs in SANDBOX sheet
-gog sheets list-tabs 1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE
+gog sheets list-tabs <SANDBOX_SHEET_ID from os_links.yaml>
 
-# 4. Check sandbox sheet INBOX headers (if tab exists)
-gog sheets get 1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE "INBOX!1:2" --json
+# 4. Check sandbox sheet INBOX headers (if the tab exists)
+gog sheets get <SANDBOX_SHEET_ID> "INBOX!1:2" --json
 ```
 
 Once we know which tabs exist in the sandbox sheet, the router can be wired to write there.
