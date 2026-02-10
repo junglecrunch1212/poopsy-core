@@ -47,7 +47,7 @@
 |---|---|---|
 | WhatsApp | **Connected** | Gateway linked, messages flowing. Occasional transient HTTP 499 disconnect/reconnect events but self-heals. |
 | Gmail (via `gog`) | **Read-only working** | `gog gmail list/read` works. Triage cron runs every 2h (08:00–20:00 ET). GOG_ACCOUNT=jrstice@gmail.com. |
-| Google Calendar | **NOT CONFIGURED** | Calendar IDs are `__PENDING__` in live connections. `gog calendar list` may work at the API level, but no SSOT calendar is wired. Reads and writes are both blocked until a calendar ID is set. |
+| Google Calendar | **IDs configured in os_links.yaml; reads not yet verified** | `os_links.yaml` has `family_ssot` + `holds_tentative` calendar IDs. `connections.yaml` still has `__PENDING__` (stale). Need to verify reads work via `gog calendar list --calendar-id <FAMILY_SSOT_ID>`. No write scripts exist yet. |
 | Google Sheets | **Reads working; writes not yet proven** | Reads from Life OS INBOX + _MASTER_LOG work. Live writes are gated. Sandbox sheet exists (separate spreadsheet) but sandbox tabs (INBOX, _PROBE_LOG) may not be created yet — verify before writing. |
 | Tailscale | **Working** | VPS + PC + iPhone connected |
 
@@ -55,7 +55,8 @@
 - **Reads:** OK everywhere, no approval needed
 - **Sandbox sheet writes:** Approved in principle. Sandbox is a **separate spreadsheet** (not a tab in prod). Tabs must exist before writes work — verify with `gog sheets list-tabs <SANDBOX_ID>`.
 - **Production sheet writes:** Require explicit Bossman approval + idempotency + readback verification
-- **Calendar writes:** NOT CONFIGURED — calendar IDs are `__PENDING__`. Intentionally guarded (anti-nag posture).
+- **Calendar reads:** IDs configured in `os_links.yaml` but reads not verified yet. Need `gog calendar list` test.
+- **Calendar writes:** Not yet enabled. Intentionally guarded (anti-nag posture).
 - **Email sends:** Never without asking first
 
 ---
@@ -187,15 +188,27 @@ The sandbox is a **separate spreadsheet**, not a tab in the production sheet. Th
 |---|---|---|
 | Life OS (production) | `mlcc3k` | `https://docs.google.com/spreadsheets/d/1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k/edit` |
 | Life OS (sandbox) | `pohE` | `https://docs.google.com/spreadsheets/d/1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE/edit` |
-| Financial OS | `__PENDING__` | — |
+| Financial OS (production) | `jbLXA` | `https://docs.google.com/spreadsheets/d/176LxzS8ZFeSxqvCJfPFEXFmn7CgNh1ij74NYFQjbLXA/edit` |
+| Financial OS (sandbox) | `-18iU` | `https://docs.google.com/spreadsheets/d/1sWX4Rznrk9Geq4yxHfzWIxr_DWwam4RmGqBtDv-18iU/edit` |
 
-### Live connections (from VPS, 2026-02-10)
-- `life_os.sheet_id` (in `connections.yaml`): `...mlcc3k` (production)
-- `household_os.production_sheet_id` (in `os_links.yaml`): **NEEDS VERIFICATION** — may or may not match
-- `household_os.sandbox_sheet_id` (in `os_links.yaml`): **NEEDS VERIFICATION** — should be `...pohE`
-- `financial_os.sheet_id`: `__PENDING__`
-- `family_ssot.calendar_id`: `__PENDING__`
-- `holds.calendar_id`: `null` (not configured)
+### Live connections (verified from `os_links.yaml` on VPS, 2026-02-10)
+
+**SSOT is `os_links.yaml`**, NOT `connections.yaml` (which still has stale `__PENDING__` values for calendar).
+
+**Sheets:**
+- `household_os.production_sheet_id`: `1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k` ✓
+- `household_os.sandbox_sheet_id`: `1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE` ✓
+- `household_os.production_dashboard_gid`: `346720610`
+- `financial_os.production_sheet_id`: `176LxzS8ZFeSxqvCJfPFEXFmn7CgNh1ij74NYFQjbLXA` ✓
+- `financial_os.sandbox_sheet_id`: `1sWX4Rznrk9Geq4yxHfzWIxr_DWwam4RmGqBtDv-18iU` ✓
+
+**Calendars:**
+- `calendars.google.account`: `jrstice@gmail.com`
+- `calendar_ids.primary`: `primary`
+- `calendar_ids.family_ssot`: `0c1efb6817814282250e97520992e9dad21c9d46c8699b0aa8de45e1fefae9af@group.calendar.google.com`
+- `calendar_ids.holds_tentative`: `6062a0382c3ad6b345b3ef12456fe1fd6c884d2a8171ab6ca8742ba5212aec40@group.calendar.google.com`
+- `outlook.laura_work_busy_ics_url`: `__PENDING__`
+- `skylight`: disabled
 
 ### INBOX tab schema (row 1 = title/instructions, row 2 = headers, row 3+ = data)
 **IMPORTANT:** Row 1 is a display row (`📥 Inbox ... Capture quick thoughts here`), NOT the header row. Headers are in row 2.
@@ -249,7 +262,7 @@ Matches schema above.
 | Dashboard | James/Laura/Next Top 3 views | Read-only from scripts |
 | [UNKNOWN] | _Other tabs — run `gog sheets list-tabs`_ | _Fill in_ |
 
-### Tab inventory — Sandbox sheet (`...jbLXA`)
+### Tab inventory — Sandbox sheet (`...pohE`)
 | Tab | Purpose | Write policy |
 |---|---|---|
 | INBOX | Sandbox capture inbox for testing intake_router | Safe to write — **NEEDS VERIFICATION: does this tab exist?** |
@@ -339,10 +352,11 @@ All live at the workspace root on VPS. Key files:
 - 25+ enabled cron jobs (briefings, earned access, build sprint, drift watch, intel)
 
 ### Not yet working / not verified
-- Google Calendar — IDs still `__PENDING__`, no reads or writes possible
-- Sandbox sheet writes — sandbox spreadsheet exists but tabs may not be created yet
-- `_PROBE_LOG` concept approved but tab not created in either sheet
+- Google Calendar — IDs configured in `os_links.yaml` but reads not yet tested via `gog calendar`
+- Sandbox sheet writes — sandbox spreadsheet exists but tabs need verification (run `gog sheets list-tabs`)
+- `_PROBE_LOG` concept approved but tab existence not verified in sandbox sheet
 - Full INBOX append → promote → _MASTER_LOG pipeline not verified end-to-end
+- `connections.yaml` calendar IDs are stale (`__PENDING__`) — `os_links.yaml` is the real SSOT
 
 ### The critical gap: No unified intake router
 The system can **read** from Gmail and Sheets (not Calendar — IDs pending) and has **proposed** write modules, but there's no working pipe connecting sources to INBOX:
