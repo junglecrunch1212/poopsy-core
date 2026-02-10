@@ -47,15 +47,15 @@
 |---|---|---|
 | WhatsApp | **Connected** | Gateway linked, messages flowing. Occasional transient HTTP 499 disconnect/reconnect events but self-heals. |
 | Gmail (via `gog`) | **Read-only working** | `gog gmail list/read` works. Triage cron runs every 2h (08:00–20:00 ET). GOG_ACCOUNT=jrstice@gmail.com. |
-| Google Calendar | **Read working, writes gated** | `gog calendar list` works. No write scripts exist yet. `calendar_spine.mjs` may exist in poopsy-in-a-box. |
-| Google Sheets | **Read working, writes gated** | Reads from Life OS INBOX + _MASTER_LOG work. Live writes are gated; sandbox writes approved. `_PROBE_LOG` approved as safe write sink in LIVE sheet. |
+| Google Calendar | **NOT CONFIGURED** | Calendar IDs are `__PENDING__` in live connections. `gog calendar list` may work at the API level, but no SSOT calendar is wired. Reads and writes are both blocked until a calendar ID is set. |
+| Google Sheets | **Reads working; writes not yet proven** | Reads from Life OS INBOX + _MASTER_LOG work. Live writes are gated. Sandbox sheet exists (separate spreadsheet) but sandbox tabs (INBOX, _PROBE_LOG) may not be created yet — verify before writing. |
 | Tailscale | **Working** | VPS + PC + iPhone connected |
 
 ### Key policy: Write gates
 - **Reads:** OK everywhere, no approval needed
-- **Sandbox writes:** OK (INBOX_SANDBOX tab, _PROBE_LOG tab)
-- **Live writes:** Require explicit Bossman approval + idempotency + readback verification
-- **Calendar writes:** Not yet enabled, intentionally guarded (anti-nag posture)
+- **Sandbox sheet writes:** Approved in principle. Sandbox is a **separate spreadsheet** (not a tab in prod). Tabs must exist before writes work — verify with `gog sheets list-tabs <SANDBOX_ID>`.
+- **Production sheet writes:** Require explicit Bossman approval + idempotency + readback verification
+- **Calendar writes:** NOT CONFIGURED — calendar IDs are `__PENDING__`. Intentionally guarded (anti-nag posture).
 - **Email sends:** Never without asking first
 
 ---
@@ -74,7 +74,7 @@
 | `observe.mjs` | Read top 3 scored tasks from _MASTER_LOG → `state/signals.json` |
 | `decide.mjs` | Pick top 1 from signals → `state/decisions.json` |
 | `capture.mjs` | Append task to INBOX (action=task), mark processed (action=processed), promote (action=promote) |
-| `intake_router.mjs` | **NEW** — Deterministic classifier + router. WhatsApp/Gmail/calendar/manual → classify → dedup → append to INBOX_SANDBOX → readback → receipt |
+| `intake_router.mjs` | **PROPOSED** — Not yet adopted. Designed as deterministic classifier + router. WhatsApp/Gmail/calendar/manual → classify → dedup → append to sandbox INBOX → readback → receipt |
 | `promote_inbox.mjs` | Single row: INBOX → _MASTER_LOG with read-back |
 | `complete_inbox.mjs` | Mark INBOX row as processed/done |
 | `poll_inbox_promotions.mjs` | Auto-promote Status="promoted" rows (batch, max 10) |
@@ -90,11 +90,11 @@
 | `gog.mjs` | Thin wrapper around `gog` CLI. `gog(cmd)` and `gogJson(cmd)`. 30s timeout. |
 | `config.mjs` | Loads `connections.yaml` + `household.yaml`. Checks live override path first, falls back to sterile template. |
 | `lifeos_inbox.mjs` | Original INBOX append (hardcoded column positions, hardcoded "INBOX" tab). Used by `capture.mjs`. |
-| `lifeos_inbox_append.mjs` | **NEW** — Header-driven, tab-configurable append. Works with any INBOX-shaped tab. Used by `intake_router.mjs`. |
+| `lifeos_inbox_append.mjs` | **PROPOSED** — Header-driven, tab-configurable append. Works with any INBOX-shaped tab. Designed for use by `intake_router.mjs`. Not yet adopted. |
 | `lifeos_masterlog.mjs` | _MASTER_LOG append with header-driven column map. `appendMasterLogRow(fields)` + `getMasterLogHeaderMap()`. |
 | `header_map.mjs` | `buildHeaderMap(headers, { required, aliases })` — resilient column resolution by normalized name. |
 | `idempotency.mjs` | `idempotencyKey({ kind, person, text, sourceId })` — SHA256 first 16 chars. |
-| `dedup_check.mjs` | **NEW** — `isDuplicate(idemKey, { sheetId, tab, maxScan })` — header-driven scan of Ref column for existing `idem:<key>`. |
+| `dedup_check.mjs` | **PROPOSED** — `isDuplicate(idemKey, { sheetId, tab, maxScan })` — header-driven scan of Ref column for existing `idem:<key>`. Not yet adopted. |
 | `action_ledger.mjs` | Append-only JSONL receipt log. `append(entry)` → `data/ledger/action-ledger.jsonl`. |
 
 #### Config (sterile templates — real values in live override path)
@@ -179,12 +179,20 @@
 
 ## 4. Google Sheets — Life OS
 
-### Sheet URLs
-- Life OS: `https://docs.google.com/spreadsheets/d/1cbi7AjRbyKrk9N84RhyDQ5HpAl96oIVXGhjh8ttIwf8/edit`
-- Financial OS: `https://docs.google.com/spreadsheets/d/1K8qYja-kIAIuDXfZ9391gDyHNIIv6Aiz/edit`
+### Sheets — two-sheet model (production + sandbox)
 
-### Live connections (from VPS connections.yaml, 2026-02-10)
-- `life_os.sheet_id`: `...mlcc3k` (redacted; full ID in live connections.yaml on VPS)
+The sandbox is a **separate spreadsheet**, not a tab in the production sheet. This matches `workspace-template/modules.json` which expects `household_os.production_sheet_id` + `household_os.sandbox_sheet_id` from `os_links.yaml`.
+
+| Sheet | ID (last 6) | Full URL |
+|---|---|---|
+| Life OS (production) | `mlcc3k` | `https://docs.google.com/spreadsheets/d/1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k/edit` |
+| Life OS (sandbox) | `pohE` | `https://docs.google.com/spreadsheets/d/1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE/edit` |
+| Financial OS | `__PENDING__` | — |
+
+### Live connections (from VPS, 2026-02-10)
+- `life_os.sheet_id` (in `connections.yaml`): `...mlcc3k` (production)
+- `household_os.production_sheet_id` (in `os_links.yaml`): **NEEDS VERIFICATION** — may or may not match
+- `household_os.sandbox_sheet_id` (in `os_links.yaml`): **NEEDS VERIFICATION** — should be `...pohE`
 - `financial_os.sheet_id`: `__PENDING__`
 - `family_ssot.calendar_id`: `__PENDING__`
 - `holds.calendar_id`: `null` (not configured)
@@ -225,23 +233,30 @@ Matches schema above.
 `item_id | item_type | title | description | domain | subdomain | owner | status | ...` (extends to column AT)
 Matches schema above.
 
-**INBOX_SANDBOX:** Does NOT exist yet. Needs to be created (matching INBOX headers).
-**_PROBE_LOG:** Does NOT exist yet. Needs to be created.
+**INBOX_SANDBOX:** Was tested against the **production** sheet — does not exist there (expected). Should exist in the **sandbox** sheet (`...pohE`). Needs verification.
+**_PROBE_LOG:** Same — not in prod sheet. Check sandbox sheet.
 
 ### Still unknown
 - [ ] Dashboard tab structure (James/Laura/Next Top 3 views)
 - [ ] Gamification system details (XP, levels, streaks)
 - [ ] Full list of all tabs in the Life OS sheet
 
-### Tab inventory
+### Tab inventory — Production sheet (`...mlcc3k`)
 | Tab | Purpose | Write policy |
 |---|---|---|
-| INBOX | Live capture inbox | Gated (approval required) |
-| INBOX_SANDBOX | Sandbox for testing intake router | Safe to write — **TAB DOES NOT EXIST YET** |
+| INBOX | Live capture inbox | Gated (Bossman approval required) |
 | _MASTER_LOG | Promoted tasks, full metadata | Gated |
-| _PROBE_LOG | Probe/diagnostic sink | Safe to write (approved) — **TAB DOES NOT EXIST YET** |
 | Dashboard | James/Laura/Next Top 3 views | Read-only from scripts |
-| [UNKNOWN] | _Other tabs?_ | _Fill in_ |
+| [UNKNOWN] | _Other tabs — run `gog sheets list-tabs`_ | _Fill in_ |
+
+### Tab inventory — Sandbox sheet (`...jbLXA`)
+| Tab | Purpose | Write policy |
+|---|---|---|
+| INBOX | Sandbox capture inbox for testing intake_router | Safe to write — **NEEDS VERIFICATION: does this tab exist?** |
+| _PROBE_LOG | Probe/diagnostic sink | Safe to write (approved) — **NEEDS VERIFICATION: does this tab exist?** |
+| [UNKNOWN] | _Run `gog sheets list-tabs <SANDBOX_ID>` to discover_ | _Fill in_ |
+
+**IMPORTANT:** The intake_router should write to the **sandbox sheet's** INBOX tab, NOT to a sandbox tab in the production sheet.
 
 ---
 
@@ -316,46 +331,54 @@ All live at the workspace root on VPS. Key files:
 
 ## 7. The Big Picture — What's Working vs. What's Missing
 
-### Working
+### Working (verified)
 - OpenClaw running + WhatsApp connected + messages flowing
-- Gmail read/triage every 2h
-- Google Calendar reads
-- Google Sheets reads (INBOX + _MASTER_LOG)
-- poopsy-core INBOX append + promote pipeline + receipts + ledger
+- Gmail read/triage every 2h (cron confirmed running)
+- Google Sheets reads (INBOX + _MASTER_LOG confirmed via gog)
+- `poll_inbox_promotions.mjs` cron runs every 15 min (but full write/promote pipeline not verified end-to-end recently)
 - 25+ enabled cron jobs (briefings, earned access, build sprint, drift watch, intel)
-- Sandbox write policy established
+
+### Not yet working / not verified
+- Google Calendar — IDs still `__PENDING__`, no reads or writes possible
+- Sandbox sheet writes — sandbox spreadsheet exists but tabs may not be created yet
+- `_PROBE_LOG` concept approved but tab not created in either sheet
+- Full INBOX append → promote → _MASTER_LOG pipeline not verified end-to-end
 
 ### The critical gap: No unified intake router
-The system can **read** from all sources (Gmail, Calendar, WhatsApp) and **write** to Sheets (with safety), but there's no pipe connecting them:
+The system can **read** from Gmail and Sheets (not Calendar — IDs pending) and has **proposed** write modules, but there's no working pipe connecting sources to INBOX:
 
 ```
 Gmail triage output ──┐
-                      │   intake_router.mjs (NEW, just shipped)
-WhatsApp messages ────┤──────────────────────────────→ INBOX_SANDBOX
-                      │                                (then INBOX after approval)
-Calendar invites ─────┘
+                      │   intake_router.mjs (PROPOSED, not yet adopted)
+WhatsApp messages ────┤──────────────────────────────→ Sandbox sheet INBOX
+                      │                                (then prod INBOX after approval)
+Calendar invites ─────┘  (blocked — calendar IDs __PENDING__)
 ```
 
-**`intake_router.mjs`** was just added to poopsy-core to fill this gap. It does:
+**`intake_router.mjs`** exists in the repo as a proposed script. It is designed to:
 1. Classify inbound text (task / calendar_candidate / list / capture-needs-triage)
 2. Dedup check against existing INBOX rows via idempotency key
-3. Append to INBOX_SANDBOX (sandbox-first, no prod writes)
+3. Append to sandbox sheet INBOX (sandbox-first, no prod writes)
 4. Readback verification
 5. Receipt to action ledger
 
+**Not yet adopted or tested against live sheets.**
+
 ### Remaining work to reach "Chief of Staff"
-1. **Create INBOX_SANDBOX tab** in Life OS sheet (matching INBOX headers)
-2. **Wire intake_router into existing crons** — Gmail triage → intake_router, WhatsApp on-message → intake_router
-3. **Calendar write scripts** — `gog calendar create` for tasks with due dates (gated)
-4. **Heartbeat/cron for proactive coaching** — morning digest, transition warnings, nudges
-5. **Promotion to live** — after sandbox is proven, Bossman approves removing `--sandbox` flag
-6. **on-message hook** — implement the WIP `hooks/on-message.md` contract
+1. **Verify sandbox sheet** — confirm `os_links.yaml` has sandbox_sheet_id, list tabs, create INBOX tab if missing
+2. **Adopt intake_router** — finalize the proposed scripts, test against sandbox sheet INBOX
+3. **Wire intake_router into existing crons** — Gmail triage → intake_router, WhatsApp on-message → intake_router
+4. **Configure calendar** — set SSOT calendar ID, test reads via `gog calendar list`
+5. **Calendar write scripts** — `gog calendar create` for tasks with due dates (gated)
+6. **Promotion to live** — after sandbox is proven, Bossman approves pointing at prod sheet
+7. **on-message hook** — implement the WIP `hooks/on-message.md` contract
 
 ### Staged rollout
-1. Sandbox INBOX writes (current) → readback proof → verify dedup works
-2. Live INBOX writes (after approval) → same safety guarantees
-3. Calendar writes (after separate approval) → existence check + idempotency
-4. Proactive coaching (briefings already running, need to add action triggers)
+1. Verify sandbox sheet exists and has INBOX tab with correct headers
+2. Adopt + test intake_router against sandbox sheet → readback proof → verify dedup works
+3. Live INBOX writes (after Bossman approval) → same safety guarantees + `headerRow: 2` for prod
+4. Calendar reads (after calendar ID configured) → then writes (after separate approval)
+5. Proactive coaching (briefings already running, need to add action triggers)
 
 ---
 
@@ -408,17 +431,32 @@ gog sheets list-tabs <LIFE_OS_SHEET_ID>
 openclaw status --deep
 ```
 
-### Blocking items before intake_router can run
-1. **Create INBOX_SANDBOX tab** — Poopsy needs to run: `gog sheets add-tab <SHEET_ID> "INBOX_SANDBOX"` then populate row 1 with headers (copied from INBOX row 2). **Do NOT add a title row** — the new scripts (`lifeos_inbox_append.mjs`, `dedup_check.mjs`) expect headers in row 1.
-2. **Create _PROBE_LOG tab** — same approach (headers in row 1, no title row)
+### Blocking checks before intake_router can be adopted
+Run these on VPS and paste results:
+
+```bash
+# 1. Confirm os_links.yaml has both sheet IDs
+cat /data/.openclaw/workspace/os_links.yaml
+
+# 2. List tabs in PRODUCTION sheet
+gog sheets list-tabs 1eJ9YgsLl1YhMqGenaj8aPjz1QyQTeudIJ_EComlcc3k
+
+# 3. List tabs in SANDBOX sheet
+gog sheets list-tabs 1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE
+
+# 4. Check sandbox sheet INBOX headers (if tab exists)
+gog sheets get 1OdsMnXpskt9WUvuSuf0EPCdxnhlUqOkO5hs99TfpohE "INBOX!1:2" --json
+```
+
+Once we know which tabs exist in the sandbox sheet, the router can be wired to write there.
 
 ### Critical: INBOX header row offset
-The live **INBOX** tab has a **title row in row 1** ("📥 Inbox ... Capture quick thoughts here") and **headers in row 2**. This means:
+The **production** INBOX tab has a **title row in row 1** ("📥 Inbox ... Capture quick thoughts here") and **headers in row 2**. This means:
 - `lifeos_inbox.mjs` (old) is correct — it hardcodes `INBOX!A2:M` and knows the column order
-- `lifeos_inbox_append.mjs` (new) reads headers from row 1 — **safe for INBOX_SANDBOX** (no title row), **would break on live INBOX**
-- `dedup_check.mjs` (new) reads headers from row 1 — **same: safe for SANDBOX, not for live INBOX**
+- `lifeos_inbox_append.mjs` (proposed) reads headers from row 1 — **safe for sandbox sheet** (if no title row), **would break on prod INBOX**
+- `dedup_check.mjs` (proposed) reads headers from row 1 — **same: safe for sandbox, not for prod**
 
-**Before promoting intake_router to live INBOX**, the new modules need a `headerRow` parameter (default 1, set to 2 for live INBOX) or the INBOX title row needs to be removed.
+**Before promoting intake_router to production**, the modules need a `headerRow` parameter (default 1, set to 2 for prod INBOX) or the prod INBOX title row needs to be removed.
 
 ---
 
