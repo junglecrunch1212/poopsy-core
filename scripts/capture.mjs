@@ -102,51 +102,6 @@ if (!action) {
       console.log((r.stdout || '').trim());
       process.exit(0);
     }
-    if (dryRun) {
-      receipt({ intent: 'capture', result: 'dry_run', ok: true, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId } });
-      console.log(JSON.stringify({ status: 'dry_run', action, person, id: inboxId }, null, 2));
-      process.exit(0);
-    }
-
-    const { spawnSync } = await import('node:child_process');
-    const r = spawnSync('node', ['scripts/complete_inbox.mjs', `--id=${inboxId}`], { encoding: 'utf8' });
-    const ok = (r.status ?? 1) === 0;
-
-    receipt({ intent: 'capture', result: ok ? 'processed_ok' : 'processed_error', ok, ts, target: 'life_os:INBOX', detail: { action, person, id: inboxId, stderr: (r.stderr || '').slice(-400) } });
-
-    if (!ok) throw new Error((r.stdout || r.stderr || 'done failed').slice(-800));
-
-    console.log((r.stdout || '').trim() || JSON.stringify({ status: 'ok', action, id: inboxId }, null, 2));
-    process.exit(0);
-
-    const idem = idempotencyKey({ kind: 'task', person, text: text.trim(), sourceId });
-
-    if (dryRun) {
-      receipt({ intent: 'capture', result: 'dry_run', ok: true, ts, target: 'life_os:INBOX', detail: { action, person, idempotency: idem } });
-      console.log(JSON.stringify({ status: 'dry_run', action, person, idempotency: idem }, null, 2));
-      process.exit(0);
-    }
-
-    const res = await appendInboxTask({
-      from: `capture:${person || 'unknown'}`,
-      status: 'new',
-      title: text.trim(),
-      notes: '',
-      owner: person ? person[0].toUpperCase() + person.slice(1) : '',
-      idempotency: idem
-    });
-
-    receipt({
-      intent: 'capture',
-      result: res.verified ? 'ok_verified' : 'ok_unverified',
-      ok: true,
-      ts,
-      target: 'life_os:INBOX',
-      detail: { action, person, id: res.id, verified: res.verified, idempotency: idem, warning: res.warning || null }
-    });
-
-    console.log(JSON.stringify({ status: 'ok', action, person, id: res.id, verified: res.verified, idempotency: idem, warning: res.warning || null }, null, 2));
-    process.exit(0);
   } catch (e) {
     receipt({ intent: 'capture', result: 'error', ok: false, ts, error: e?.message || String(e), detail: { action, person } });
     console.log(JSON.stringify({ status: 'error', action, person, error: e?.message || String(e) }, null, 2));

@@ -5,6 +5,16 @@ node_modules/
 state/
 data/
 logs/
+*.log
 
 # local env
 .env
+.env.*
+
+# build artifacts
+dist/
+coverage/
+
+# IDE
+.vscode/
+.idea/

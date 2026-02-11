@@ -16,7 +16,7 @@ const inboxId = arg('id');
 const defaultOwner = arg('owner', '');
 
 if (!inboxId) {
-  console.log('Usage: node scripts/promote_inbox.mjs --id=INB-YYYYMMDD-#### [--owner=James]');
+  console.log('Usage: node scripts/promote_inbox.mjs --id=INB-YYYYMMDD-#### [--owner=<person>]');
   process.exit(2);
 }
 

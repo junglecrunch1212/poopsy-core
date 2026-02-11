@@ -8,15 +8,15 @@
 
 ## 1. Who's Who
 
-- **Human:** James ("Bossman"), 43, Atlanta GA (Grant Park → Virginia-Highland move in progress)
+- **Human:** Bossman (primary user, see VPS `USER.md` for details)
 - **Agent:** Poopsy 💩 (private) / Mr. Whoops (public) — AI household Chief of Staff
 - **Platform:** OpenClaw (open-source AI assistant, formerly Clawdbot/Moltbot), self-hosted
-- **Goal:** Better-than-human Household Chief of Staff — proactive executive assistant + ADHD/health execution coach for two co-heads of household (James + Laura)
+- **Goal:** Better-than-human Household Chief of Staff — proactive executive assistant + ADHD/health execution coach for two co-heads of household
 
-### James quick facts
+### Bossman quick facts
 - INFP with ADHD — proactive check-ins, break down overwhelm, capture immediately, celebrate wins
-- CFO/CTO/COO at Evolve Family Law (~10 hrs/week), Laura is junior partner
-- Son Henry (6), baby girl (Mary Holland) arriving May 2026, planning third child ~18mo after
+- Runs a small professional services firm (~10 hrs/week), partner is co-head of household
+- Growing family (young children)
 - Complete beginner to command line and coding — no jargon without explanation
 - Prefers bullet points, time estimates, systems/frameworks
 - Timezone: America/New_York (EST)
@@ -64,7 +64,7 @@
 ## 3. The Two Repos
 
 ### poopsy-core (this repo — sterile skill skeleton)
-- **GitHub:** `junglecrunch1212/poopsy-core`
+- **GitHub:** `<org>/poopsy-core` (see VPS config for org)
 - **Purpose:** Minimal, portable core loop. The clean "spine" — no PII, no real IDs committed.
 - **Pattern:** observe → decide → act → learn
 - **Contract:** No external writes without pre-check → write → read-back → receipt
@@ -107,7 +107,7 @@
 - `scripts/sanitize_check.sh` — Blocks commits containing tokens, API keys, Google Sheets URLs, real emails
 
 ### poopsy-in-a-box (on VPS — the full automation project)
-- **GitHub:** `junglecrunch1212/poopsy-in-a-box`
+- **GitHub:** `<org>/poopsy-in-a-box` (see VPS config for org)
 - **Purpose:** Full household Chief of Staff project — skills, modules, policies, research, briefings
 - **Location on VPS:** `/data/.openclaw/workspace/projects/poopsy-in-a-box/`
 
@@ -207,7 +207,7 @@ The sandbox is a **separate spreadsheet**, not a tab in the production sheet. Th
 - `calendar_ids.primary`: `primary`
 - `calendar_ids.family_ssot`: set ✓ (long hash `@group.calendar...`)
 - `calendar_ids.holds_tentative`: set ✓ (long hash `@group.calendar...`)
-- `outlook.laura_work_busy_ics_url`: `__PENDING__`
+- `outlook.partner_work_busy_ics_url`: `__PENDING__`
 - `skylight`: disabled
 
 ### INBOX tab schema (row 1 = title/instructions, row 2 = headers, row 3+ = data)
@@ -216,7 +216,7 @@ The sandbox is a **separate spreadsheet**, not a tab in the production sheet. Th
 |---|---|---|
 | A | ID | `INB-YYYYMMDD-XXXX` (auto-generated) |
 | B | When | ISO timestamp |
-| C | From | Source (e.g. `whatsapp:James`, `capture:james`) |
+| C | From | Source (e.g. `whatsapp:<person>`, `capture:<person>`) |
 | D | Status | `new`, `promoted`, `processed`, `done` |
 | E | Ref | Idempotency key (`idem:<hash>`) or free text |
 | F | Quick Note | Short context (e.g. `[calendar_candidate]`, `[capture]`) |
@@ -250,16 +250,16 @@ Matches schema above.
 **_PROBE_LOG:** Same — not in prod sheet. Check sandbox sheet.
 
 ### Still unknown
-- [ ] Dashboard tab structure (James/Laura/Next Top 3 views)
+- [ ] Dashboard tab structure (per-person / Next Top 3 views)
 - [ ] Gamification system details (XP, levels, streaks)
 - [ ] Full list of all tabs in the Life OS sheet
 
 ### Tab inventory — Production sheet (`...mlcc3k`)
 | Tab | Purpose | Write policy |
 |---|---|---|
-| INBOX | Live capture inbox | Gated (Bossman approval required) |
+| INBOX | Live capture inbox | Gated (approval required) |
 | _MASTER_LOG | Promoted tasks, full metadata | Gated |
-| Dashboard | James/Laura/Next Top 3 views | Read-only from scripts |
+| Dashboard | Per-person / Next Top 3 views | Read-only from scripts |
 | [UNKNOWN] | _Other tabs — run `gog sheets list-tabs`_ | _Fill in_ |
 
 ### Tab inventory — Sandbox sheet (`...pohE`)
@@ -281,7 +281,7 @@ All live at the workspace root on VPS. Key files:
 |---|---|
 | `AGENTS.md` | Session boot protocol: read SOUL.md → USER.md → memory → MEMORY.md |
 | `SOUL.md` | Personality, boundaries, coach mode, earned access rules |
-| `USER.md` | Everything about James — role, family, priorities, health, ADHD, preferences |
+| `USER.md` | Everything about Bossman — role, family, priorities, health, ADHD, preferences |
 | `IDENTITY.md` | Name (Poopsy/Mr. Whoops), creature type, vibe, emoji |
 | `TOOLS.md` | Local infra notes (cameras, SSH, TTS, contacts) |
 | `MEMORY.md` | Curated long-term memory (big vision, infra status, lessons, active projects) |
@@ -290,7 +290,7 @@ All live at the workspace root on VPS. Key files:
 | `memory/heartbeat-state.json` | Last check timestamps for email/calendar/weather/mentions |
 
 ### Earned Access system
-- James must complete 4 daily pillars: Exercise, Captain (dog training), Honey-Do (1 concrete item), House Reset
+- Bossman must complete 4 daily pillars: Exercise, Captain (dog training), Honey-Do (1 concrete item), House Reset
 - Gatekeepers fire at 08:00 (≥1), 11:30 (≥2), 14:00 (≥3), 17:00 (all 4)
 - When locked: only progress updates, plan next block, capture-only — no rabbit holes
 - Override phrase: `BOSSMAN OVERRIDE: DO THE THING`
@@ -330,7 +330,7 @@ All live at the workspace root on VPS. Key files:
 | ChildDev Evidence Ladder Loop | Monday 07:10 ET | main/system | Weekly child-dev evidence card |
 | PiB Skill Watch (ClawHub) | Every 3 days | isolated/agentTurn | Scan for new skills, security audit, recommend if useful |
 | Poopsy: Integration + Regression | Every 6h | main/system | `openclaw status --deep` + security audit + connectivity |
-| Emerald City Locks bagel reminder | One-shot 2026-05-27 09:00 | main/system | Laura's bagel the day after Mary Holland is born |
+| Emerald City Locks bagel reminder | One-shot 2026-05-27 09:00 | main/system | Reminder for partner (personal context in VPS config) |
 
 ### Currently DISABLED
 | Job | Notes |
@@ -414,8 +414,8 @@ Calendar invites ─────┘  (blocked — calendar IDs __PENDING__)
 
 > PII redacted for CI sanitize gate. Real values in VPS config files (`os_links.yaml`, OpenClaw config).
 
-- **GitHub:** junglecrunch1212
-- **Firm:** Evolve Family Law
+- **GitHub:** (see VPS config)
+- **Firm:** (see VPS config)
 
 ---
 

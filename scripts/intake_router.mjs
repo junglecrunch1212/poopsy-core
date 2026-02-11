@@ -8,7 +8,7 @@
 // Usage:
 //   node scripts/intake_router.mjs \
 //     --source=whatsapp --raw="Add task: call pediatrician" \
-//     [--from=James] [--sourceId=msg-abc123] [--sandbox] [--dry-run]
+//     [--from=<person>] [--sourceId=msg-abc123] [--sandbox] [--dry-run]
 //
 // Default write target:
 //   --sandbox  → INBOX_SANDBOX tab  (safe sink, no prod data touched)
@@ -38,7 +38,7 @@ const dryRun   = process.argv.includes('--dry-run');
 if (!source || !raw.trim()) {
   console.log(
     'Usage: node scripts/intake_router.mjs --source=whatsapp ' +
-    '--raw="Add task: ..." [--from=James] [--sourceId=...] [--sandbox] [--dry-run]'
+    '--raw="Add task: ..." [--from=<person>] [--sourceId=...] [--sandbox] [--dry-run]'
   );
   process.exit(2);
 }
